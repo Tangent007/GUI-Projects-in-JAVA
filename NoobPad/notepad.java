@@ -3,8 +3,11 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+import javax.swing.text.AttributeSet.ColorAttribute;
 
 import java.awt.event.*;
+
+// wallpaper option m dalna h, dark mode dalan h.
 
 
 // listener for font part
@@ -164,6 +167,15 @@ class menu implements ActionListener{
                 // notepad.m32.
             }
         }
+        else if (e.getSource() == notepad.m33) {
+            if (notepad.m33.isSelected()) {
+                notepad.ta.setBackground(Color.black);
+                notepad.ta.setForeground(Color.white);
+            } else if (!notepad.m33.isSelected()) {
+                notepad.ta.setBackground(Color.white);
+                notepad.ta.setForeground(Color.black);
+            }
+        }
 
     }
     
@@ -173,7 +185,7 @@ public class notepad {
     static JFrame jf = new JFrame("notepad");
     static JTextArea ta = new JTextArea();
     static JMenu m1,m2,m3,m4;
-    static JMenuItem m11,m12,m13,m14,m21,m22,m23,m31,m32;
+    static JMenuItem m11,m12,m13,m14,m21,m22,m23,m31,m32,m33;
     static JSeparator s = new JSeparator();
     public static void main(String[] args) {
 
@@ -202,6 +214,7 @@ public class notepad {
         // m3 submenu
         m31 = new JMenuItem("font");
         m32 =new JCheckBoxMenuItem("Word wrap");
+        m33 = new JCheckBoxMenuItem("Dark Mode");
 
         JMenuBar mb = new JMenuBar();
         mb.add(m1);
@@ -218,12 +231,13 @@ public class notepad {
         m2.add(m23);
         m3.add(m31);
         m3.add(m32);
+        m3.add(m33);
 
         // for when just jmenu is clicked since it doesnot extends abstract button
         m4.addMenuListener(new MenuListener() {
-
+            JDialog jd;
             public void menuSelected(MenuEvent e) {
-                JDialog jd = new JDialog(notepad.jf, "About");
+                jd = new JDialog(notepad.jf, "About");
                 JLabel t = new JLabel();
 
                 t.setText("Noob Notepad\n v1.0");
@@ -232,6 +246,7 @@ public class notepad {
                 jd.setSize(100, 100);
                 jd.setLocationRelativeTo(null);
                 jd.setVisible(true);
+                
                 // try {
                 //     jd.wait(5000);
                 // } catch (Exception ex) {
@@ -243,11 +258,13 @@ public class notepad {
 
             public void menuDeselected(MenuEvent e) {
                 // System.out.println("menuDeselected");
+                // jd.dispose();
 
             }
 
             public void menuCanceled(MenuEvent e) {
                 // System.out.println("menuCanceled");
+                jd.dispose();
 
             }
         });
@@ -267,6 +284,7 @@ public class notepad {
         m23.addActionListener(ma);
         m31.addActionListener(ma);
         m32.addActionListener(ma);
+        m33.addActionListener(ma);
         // m4.addActionListener(new MyAction());
 
 
