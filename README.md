@@ -6,5 +6,5 @@
   <li><a href="https://github.com/Tangent007/GUI-Projects-in-JAVA/blob/master/StopWatch/README.md"> Stopwatch </a></li>
   <h6>This is a stopwatch built in java graphics library. ⏱</h6><br>
   <img src="https://github.com/Tangent007/GUI-Projects-in-JAVA/blob/master/StopWatch/1.png"><br>
-  <li> File organizer</li>
+  <li><a href="https://github.com/Tangent007/GUI-Projects-in-JAVA/blob/master/File%20Organizer/README.md"> File organizer</a></li>
     </ol></h2>
