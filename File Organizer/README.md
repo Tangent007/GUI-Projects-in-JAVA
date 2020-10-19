@@ -1,5 +1,5 @@
 # File organizer
-A file organizer GUI built in java swing library and NIO library.
+A file organizer GUI built in java swing library and NIO library.<br>
 ![](https://github.com/Tangent007/GUI-Projects-in-JAVA/blob/master/File%20Organizer/Image%20assets/1.png)
 <b>
 <ol>
