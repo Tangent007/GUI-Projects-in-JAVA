@@ -6,6 +6,8 @@ import javax.swing.event.MenuListener;
 import javax.swing.text.AttributeSet.ColorAttribute;
 
 import java.awt.event.*;
+import java.util.*;
+import java.util.stream.IntStream;
 
 // wallpaper option m dalna h, dark mode dalan h.
 
@@ -19,6 +21,10 @@ class fontlistener implements ActionListener{
         if(e.getSource()==menu.ap){
             String type = menu.cb.getItemAt(menu.cb.getSelectedIndex());
             Integer size = menu.cb2.getItemAt(menu.cb2.getSelectedIndex());
+            Integer r = menu.R.getItemAt(menu.R.getSelectedIndex());
+            Integer g = menu.G.getItemAt(menu.G.getSelectedIndex());
+            Integer b = menu.B.getItemAt(menu.B.getSelectedIndex());
+            notepad.ta.setForeground(new Color(r, g, b));
             notepad.ta.setFont(new Font(type,3,size));
             menu.jd.add(menu.prompt);
             menu.prompt.setBounds(80, 240, 150, 20);
@@ -36,6 +42,25 @@ class fontlistener implements ActionListener{
             Integer size = menu.cb2.getItemAt(menu.cb2.getSelectedIndex());
             menu.pr.setFont(new Font(type,3,size));
         }
+        else if(e.getSource()==menu.R){
+            Integer r = menu.R.getItemAt(menu.R.getSelectedIndex());
+            Integer g = menu.G.getItemAt(menu.G.getSelectedIndex());
+            Integer b = menu.B.getItemAt(menu.B.getSelectedIndex());
+            System.out.println(r+" "+g+" "+b);
+            menu.pr.setForeground(new Color(r, g, b));
+        }
+        else if (e.getSource() == menu.G) {
+            Integer r = menu.R.getItemAt(menu.R.getSelectedIndex());
+            Integer g = menu.G.getItemAt(menu.G.getSelectedIndex());
+            Integer b = menu.B.getItemAt(menu.B.getSelectedIndex());
+            menu.pr.setForeground(new Color(r, g, b));
+        }
+        else if (e.getSource() == menu.B) {
+            Integer r = menu.R.getItemAt(menu.R.getSelectedIndex());
+            Integer g = menu.G.getItemAt(menu.G.getSelectedIndex());
+            Integer b = menu.B.getItemAt(menu.B.getSelectedIndex());
+            menu.pr.setForeground(new Color(r, g, b));
+        }
 
     }
     
@@ -45,8 +70,8 @@ class fontlistener implements ActionListener{
 // listener for menu part
 class menu implements ActionListener{
     static JDialog jd;
-    static JLabel cs,cf,prompt,preview,pr;
-    // static JTextField pr;
+    static JLabel cs,cf,cc,prompt,preview,pr;
+    static JComboBox<Integer> R,G,B;
     static JComboBox<String> cb;
     static JComboBox<Integer> cb2;
     static JButton ap;
@@ -64,11 +89,16 @@ class menu implements ActionListener{
 
 
             // test part end
-
+            int[] r = IntStream.rangeClosed(1, 255).toArray();
+            Integer[] range = Arrays.stream( r ).boxed().toArray( Integer[]::new );
 
             // create a label
             cs = new JLabel("Choose size");
             cf = new JLabel("Choose Font");
+            cc =new JLabel("Choose color(0-255)      R       G        B");
+            R= new JComboBox<>(range); 
+            G= new JComboBox<>(range);
+            B= new JComboBox<>(range);
             prompt = new JLabel("font applied");
             preview = new JLabel("Preview :");
             // jd.add(l);
@@ -87,6 +117,8 @@ class menu implements ActionListener{
             cf.setFont(new Font("Calibri",3,15));
 
             
+
+            
             // String[] arr = { "Serif", "Monaco", "Calibri", "Helvetica Neue", "Monospaced Plain" };
             String fonts[] = 
       GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
@@ -103,16 +135,35 @@ class menu implements ActionListener{
             jd.add(cb2);
             cb2.setBounds(100, 140, 80, 20);
 
+            // color for font
+            jd.add(cc);
+            cc.setBounds(10, 180, 300, 20);
+            cc.setFont(new Font("Serif", 3, 15));
+
+            
+
+            jd.add(R);
+            R.setBounds(140, 200, 50, 20);
+            jd.add(G);
+            G.setBounds(190, 200, 50, 20);
+            jd.add(B);
+            B.setBounds(240, 200, 50, 20);
+
+
+
 
             ap =new JButton("Apply");
             jd.add(ap);
-            ap.setBounds(80, 200, 90, 20);
+            ap.setBounds(80, 260, 90, 20);
 
 
             fontlistener fl = new fontlistener();
             ap.addActionListener(fl);
             cb.addActionListener(fl);
             cb2.addActionListener(fl);
+            R.addActionListener(fl);
+            G.addActionListener(fl);
+            B.addActionListener(fl);
 
             // String[] col = { "font name" };
             // String[][] font = { { "Serif"}, { "Calibri" } };
