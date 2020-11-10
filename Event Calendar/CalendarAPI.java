@@ -5,6 +5,9 @@ Use DateTimeAPI.
 */
 
 import javax.swing.*;
+
+import jdk.jfr.BooleanFlag;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
@@ -19,7 +22,12 @@ class EventC implements ActionListener {
     static JDialog jd;
     static JLabel en, tag, details;
     static JTextArea ed;
-    static JTextField get, ta, de;
+    static JTextField get, de;
+    static JButton ok,del;
+    static JTextField tf;
+    static JTextArea deta;
+    static ArrayList<String> dtails = new ArrayList<String>();
+    static JComboBox<String> ev,ta;
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -39,7 +47,8 @@ class EventC implements ActionListener {
                 tag = new JLabel("Tag (Birthday/Meeting/Work) :");
                 details = new JLabel("Details :");
                 get = new JTextField();
-                ta = new JTextField();
+                String[] tags={"Work","Birthday","Others"};
+                ta = new JComboBox<>(tags);
                 de = new JTextField();
                 // System.out.println("enter date in yyyy-dd-mm :");
                 jd.add(en);
@@ -76,7 +85,7 @@ class EventC implements ActionListener {
             //  System.out.println(CalendarAPI.cur);
             // List devent ;
             try {
-                PreparedStatement p = CalendarAPI.con.prepareStatement("select date from event where date=?");
+                PreparedStatement p = CalendarAPI.con.prepareStatement("select tag,details from event where date=?");
                 p.setString(1, CalendarAPI.cur.toString());
                 rs = p.executeQuery();
                 // while(rs.next()){
@@ -88,6 +97,7 @@ class EventC implements ActionListener {
                 // rs = p.executeQuery();
                 while (rs.next()) {
                     // devent[j]=rs.getString(1);
+                    dtails.add(rs.getString(2));
                     devent.add(rs.getString(1));
                     // System.out.println(rs.getString(1));
                     // j++;
@@ -100,15 +110,50 @@ class EventC implements ActionListener {
                 System.out.println(x);
             }
             String[] eve=devent.stream().toArray(String[]::new);
+            boolean Dcheck=false;
+            try {
+                PreparedStatement pop = CalendarAPI.con.prepareStatement("select * from event where date=?");
+                pop.setString(1, CalendarAPI.cur.toString());
+                ResultSet rst = pop.executeQuery();
+                while (rst.next()) {
+                    Dcheck=true;
+                }
+            } catch (Exception err) {
+                //TODO: handle exception
+            }
             // eve= (String[]) devent.toArray();
             jd = new JDialog(CalendarAPI.jf,"Delete");
             jd.setLayout(null);
-            JComboBox<String> ev = new JComboBox<>(eve);
+            JTextArea noE = new JTextArea("No event found");
+            del=new JButton("DEL");
+            deta= new JTextArea();
+            deta.setLineWrap(true);
+            ev = new JComboBox<>(eve);
+            if(Dcheck)
             jd.add(ev);
             ev.setBounds(20,20,100,40);
+            if (Dcheck)
+            jd.add(del);
+            del.setBounds(150,20,80,30);
+            if (Dcheck)
+            jd.add(deta);
+            deta.setBounds(20,80,200,200);
+            deta.setBackground(new Color(238, 236, 236));
+
+            if(!Dcheck)
+                jd.add(noE);
+            noE.setBounds(20,50,100,100);
+            noE.setBackground(new Color(238, 236, 236));
+            noE.setEditable(false);
+
             jd.setLocationRelativeTo(CalendarAPI.jf);
-            jd.setSize(250, 320);
+            jd.setSize(250, 260);
             jd.setVisible(true);
+
+            EventC ford=new EventC();
+            ev.addActionListener(ford);
+            del.addActionListener(ford);
+
             // try {
             //     PreparedStatement ps = CalendarAPI.con.prepareStatement("delete from event where date=?");
             //     ps.setString(1, CalendarAPI.cur.toString());
@@ -120,6 +165,68 @@ class EventC implements ActionListener {
             // }
             eventL.jd.dispose();
 
+        } else if(e.getSource()==CalendarAPI.snooze){
+
+            try {
+                Statement st = CalendarAPI.con.createStatement();
+                ResultSet rs = st.executeQuery("select * from event");
+                tf = new JTextField();
+                ok = new JButton("OK");
+                JLabel ti = new JLabel("Enter time: (hours:min)");
+                System.out.println("snooze pressed");
+                LocalTime t = LocalTime.now();
+                System.out.println(t.toString());
+                JDialog op = new JDialog(CalendarAPI.jf, "snooze");
+                op.setLayout(null);
+
+                op.add(tf);
+                tf.setBounds(20,20,150,30);
+
+                op.add(ok);
+                ok.setBounds(20,60,60,30);
+
+                EventC ce = new EventC();
+                ok.addActionListener(ce);
+                
+                op.setLocationRelativeTo(CalendarAPI.jf);
+                op.setSize(280, 160);
+                op.setVisible(true);
+            } catch (Exception eg) {
+                //TODO: handle exception
+            }
+        } else if(e.getSource()==ok){
+            try {
+                System.out.println("ok pressed");
+                LocalTime p = LocalTime.parse(tf.getText());
+                PreparedStatement te = CalendarAPI.con
+                        .prepareStatement("update event set time=?,snooze=? where tag=? and details=?");
+                te.setString(1, p.toString());
+                te.setString(2, "1");
+                te.setString(3, CalendarAPI.Stag);
+                te.setString(4, CalendarAPI.Sdetails);
+                te.executeUpdate();
+            } catch (Exception etr) {
+                //TODO: handle exception
+                etr.printStackTrace();
+            }
+        } else if(e.getSource()==ev){
+            int i = ev.getSelectedIndex();
+            deta.setText(dtails.get(i));
+            deta.setEditable(false);
+        } else if(e.getSource()==del){
+            System.out.println("del pressed");
+            try {
+                int i = ev.getSelectedIndex();
+            PreparedStatement ps = CalendarAPI.con.prepareStatement("delete from event where tag=? and details=?");
+            ps.setString(1, ev.getSelectedItem().toString());
+            ps.setString(2, dtails.get(ev.getSelectedIndex()));
+            ps.executeUpdate();
+            // eventREminder.con.close();
+            } catch (Exception eww) {
+            // TODO: handle exception
+            eww.printStackTrace();
+            }
+            EventC.jd.dispose();
         }
     }
 
@@ -191,10 +298,12 @@ class eventL implements ActionListener {
             LocalDate date = LocalDate.parse(EventC.get.getText());
             // System.out.println(date.toString() + EventC.ta.getText() + EventC.de.getText());
             try {
-                PreparedStatement ps = CalendarAPI.con.prepareStatement("insert into event values(?,?,?)");
+                PreparedStatement ps = CalendarAPI.con.prepareStatement("insert into event values(?,?,?,?,?)");
                 ps.setString(1, date.toString());
-                ps.setString(2, EventC.ta.getText());
+                ps.setString(2, EventC.ta.getSelectedItem().toString());
                 ps.setString(3, EventC.de.getText());
+                ps.setString(4, "null");
+                ps.setString(5, "0");
                 ps.executeUpdate();
                 // eventREminder.con.close();
             } catch (Exception eww) {
@@ -243,7 +352,14 @@ public class CalendarAPI implements ActionListener {
     static Connection con;
     static JButton show = new JButton("show");
     static JButton submit = new JButton("Submit");
+    static JButton snooze;
     static eventL el = new eventL();
+
+    static LocalDate forSnooze;
+    static boolean checkk,c;
+    static boolean ran =true;
+    static LocalDate check;
+    static String Stag,Sdetails;
     // static JLabel nextevent = new JLabel();
 
     static JButton[] buttons = new JButton[42];
@@ -305,7 +421,7 @@ public class CalendarAPI implements ActionListener {
 
     public static void show() {
         LocalDate current = LocalDate.now();
-        LocalDate check;
+        // LocalDate check;
         // JLabel en = new JLabel("Events :");
         JTextArea nextevent = new JTextArea();
         // jf.add(en);
@@ -341,6 +457,188 @@ public class CalendarAPI implements ActionListener {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
+        // try {
+        //     Statement st = CalendarAPI.con.createStatement();
+        //     ResultSet rs = st.executeQuery("select * from event");
+        //     boolean c=false;
+        //     while (rs.next()) {
+        //         // System.out.println(rs.getString(""));
+        //         check = LocalDate.parse(rs.getString("date"));
+        //         c = rs.getBoolean("snooze");
+        //         System.out.println(c);
+        //         String s = rs.getString("time");
+        //         boolean checkk = true;
+        //         if(!s.equals("null")){
+        //             LocalTime lo = LocalTime.parse(rs.getString("time"));
+                
+        //             // System.out.println(check + " " + current);
+        //             LocalTime lo2 = LocalTime.now();
+                    
+        //             if(lo.isAfter(lo2)){
+        //                 checkk=false;
+        //             }
+        //             else {
+        //                 checkk=true;
+        //                 c=false;
+        //             }
+
+        //         }
+        //         else{
+        //             checkk=true;
+        //         }
+        //         if ((check.isEqual(current))&&(!c)&&(checkk)) {
+        //             forSnooze=check;
+        //             snooze = new JButton("Snooze");
+        //             JTextArea eve = new JTextArea();
+        //             JDialog di= new JDialog(CalendarAPI.jf,"Today");
+        //             di.setLayout(null);
+        //             eve.append(
+        //                     rs.getString("date") + " " + rs.getString("tag") + " " + rs.getString("details") + "\n");
+        //             di.add(eve);
+        //             eve.setBounds(40,40,200,80);
+        //             eve.setEditable(false);
+        //             eve.setLineWrap(true);
+        //             eve.setBackground(new Color(238, 236, 236));
+        //             di.add(snooze);
+        //             snooze.setBounds(160,10,80,30);
+
+        //             EventC ec = new EventC();
+        //             snooze.addActionListener(ec);
+
+
+        //             di.setLocationRelativeTo(jf);
+        //             di.setSize(280, 160);
+        //             di.setVisible(true);
+        //         }
+        //     }
+        // } catch (Exception e) {
+        //     //TODO: handle exception
+        // }
+        Thread sn = new Thread(()->{
+            System.out.println("thread running");
+            while(true)
+            try {
+            Statement st = CalendarAPI.con.createStatement();
+            ResultSet rs = st.executeQuery("select * from event");
+            c=false;
+            while (rs.next()) {
+                // System.out.println(rs.getString(""));
+                check = LocalDate.parse(rs.getString("date"));
+                c = rs.getBoolean("snooze");
+                // System.out.println(c);
+                String s = rs.getString("time");
+                checkk = true;
+                if(!s.equals("null")){
+                    // ran =true;
+                    LocalTime lo = LocalTime.parse(rs.getString("time"));
+                
+                    // System.out.println(check + " " + current);
+                    LocalTime lo2 = LocalTime.now();
+                        int a = lo2.getHour();
+                        int b = lo2.getMinute();
+                        LocalTime po = LocalTime.of(a, b);
+                    
+                    // if(lo.isAfter(po)){
+                    //     checkk=false;
+                    // }
+                    if(lo.equals(po)){
+                                if ((check.isEqual(current))&&(c)) {
+                                    PreparedStatement te = CalendarAPI.con
+                                            .prepareStatement("update event set snooze=? where time=?");
+                                    te.setString(1, "0");
+                                    te.setString(2, lo.toString());
+                                    te.executeUpdate();
+                                    forSnooze = check;
+                                    snooze = new JButton("Snooze");
+                                    JTextArea eve = new JTextArea();
+                                    JDialog di = new JDialog(CalendarAPI.jf, "Today");
+                                    di.setLayout(null);
+                                    eve.append(rs.getString("date") + " " + rs.getString("tag") + " "
+                                            + rs.getString("details") + "\n");
+                                    Stag = rs.getString("tag");
+                                    Sdetails = rs.getString("details");
+                                    di.add(eve);
+                                    eve.setBounds(40, 40, 200, 80);
+                                    eve.setEditable(false);
+                                    eve.setLineWrap(true);
+                                    eve.setBackground(new Color(238, 236, 236));
+                                    di.add(snooze);
+                                    snooze.setBounds(160, 10, 80, 30);
+
+                                    EventC ec = new EventC();
+                                    snooze.addActionListener(ec);
+
+                                    di.setLocationRelativeTo(jf);
+                                    di.setSize(280, 160);
+                                    di.setVisible(true);
+
+                                }
+                    }
+
+                }
+                else if(ran){
+                    checkk=true;
+                    ran=false;
+                            if (check.isEqual(current)) {
+                                forSnooze = check;
+                                snooze = new JButton("Snooze");
+                                JTextArea eve = new JTextArea();
+                                JDialog di = new JDialog(CalendarAPI.jf, "Today");
+                                di.setLayout(null);
+                                eve.append(rs.getString("date") + " " + rs.getString("tag") + " "
+                                        + rs.getString("details") + "\n");
+                                di.add(eve);
+                                eve.setBounds(40, 40, 200, 80);
+                                eve.setEditable(false);
+                                eve.setLineWrap(true);
+                                eve.setBackground(new Color(238, 236, 236));
+                                Stag=rs.getString("tag");
+                                Sdetails=rs.getString("details");
+                                di.add(snooze);
+                                snooze.setBounds(160, 10, 80, 30);
+
+                                EventC ec = new EventC();
+                                snooze.addActionListener(ec);
+
+                                di.setLocationRelativeTo(jf);
+                                di.setSize(280, 160);
+                                di.setVisible(true);
+
+                            }
+                }
+                // if ((check.isEqual(current))&&(!c)&&(checkk)) {
+                //     forSnooze=check;
+                //     snooze = new JButton("Snooze");
+                //     JTextArea eve = new JTextArea();
+                //     JDialog di= new JDialog(CalendarAPI.jf,"Today");
+                //     di.setLayout(null);
+                //     eve.append(
+                //             rs.getString("date") + " " + rs.getString("tag") + " " + rs.getString("details") + "\n");
+                //     di.add(eve);
+                //     eve.setBounds(40,40,200,80);
+                //     eve.setEditable(false);
+                //     eve.setLineWrap(true);
+                //     eve.setBackground(new Color(238, 236, 236));
+                //     di.add(snooze);
+                //     snooze.setBounds(160,10,80,30);
+
+                //     EventC ec = new EventC();
+                //     snooze.addActionListener(ec);
+
+
+                //     di.setLocationRelativeTo(jf);
+                //     di.setSize(280, 160);
+                //     di.setVisible(true);
+                    
+                // }
+            }
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+        });
+
+        sn.start();
+
     }
 
     public void actionPerformed(ActionEvent e) {
